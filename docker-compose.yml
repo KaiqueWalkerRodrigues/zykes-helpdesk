@@ -1,0 +1,58 @@
+services:
+  frontend:
+    build:
+      context: ./frontend/
+      dockerfile: Dockerfile
+    container_name: c-frontend
+    ports:
+      - "80:80"
+    networks:
+      - zykes-net
+
+  php:
+    build:
+      context: ./backend/
+      dockerfile: Dockerfile
+    container_name: c-php-fpm
+    volumes:
+      - ./backend:/var/www/html
+    expose:
+      - 9000
+    networks:
+      - zykes-net
+
+  nginx:
+    image: nginx:latest
+    container_name: c-nginx
+    ports:
+      - "81:80"
+    volumes:
+      - ./backend:/var/www/html
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - php
+    networks:
+      - zykes-net
+
+  mysql:
+    image: mysql:8.0
+    container_name: c-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: strong_password
+      MYSQL_DATABASE: zykes_hd
+      MYSQL_USER: zykes_user
+      MYSQL_PASSWORD: password
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    networks:
+      - zykes-net
+
+networks:
+  zykes-net:
+    driver: bridge
+
+volumes:
+  mysql_data:
