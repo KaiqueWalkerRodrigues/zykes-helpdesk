@@ -1,12 +1,15 @@
-import { useState } from "react";
+import { Routes, Route } from "react-router-dom";
 import "./App.css";
+import Home from "./pages/Home";
+import Login from "./pages/Login";
 
 function App() {
   return (
     <>
-      <button className="px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-600 text-white font-medium shadow">
-        Teste4
-      </button>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
+      </Routes>
     </>
   );
 }
