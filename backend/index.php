@@ -1,14 +1,9 @@
-<?
-
-$host = 'mysql';
-$db = 'zykes_hd';
-$user = 'zykes_user';
-$pass = 'password';
-
-try {
-    $pdo = new PDO("mysql:host=$host;dbname=$db;charset=utf8", $user, $pass);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    echo "Conectado ao banco com sucesso!";
-} catch (PDOException $e) {
-    echo "Erro: " . $e->getMessage();
+<?php
+$uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+if (strpos($uri, '/usuarios') === 0) {
+    require_once __DIR__ . '/routes/usuarios.php';
+    exit;
 }
+
+http_response_code(404);
+echo json_encode(["mensagem" => "Rota não encontrada"]);
