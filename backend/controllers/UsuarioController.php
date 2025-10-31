@@ -19,13 +19,19 @@ class UsuarioController
 
     public function cadastrar($data)
     {
-        $this->usuario->nome = $data['nome'] ?? null;
-        $this->usuario->usuario = $data['usuario'] ?? null;
-        $this->usuario->senha = $data['senha'] ?? null;
-        $this->usuario->ativo = $data['ativo'] ?? null;
-        $this->usuario->created_at = $data['created_at'] ?? null;
-        $this->usuario->updated_at = $data['updated_at'] ?? null;
-        $this->usuario->deleted_at = $data['deleted_at'] ?? null;
+        if (empty($data['nome']) || empty($data['usuario']) || empty($data['senha'])) {
+            http_response_code(400);
+            echo json_encode(["mensagem" => "Dados obrigatórios não fornecidos"]);
+            return;
+        }
+
+        $this->usuario->nome = $data['nome'];
+        $this->usuario->usuario = $data['usuario'];
+        $this->usuario->senha = password_hash($data['senha'], PASSWORD_DEFAULT);
+        $this->usuario->ativo = isset($data['ativo']) ? $data['ativo'] : 1;
+        $this->usuario->created_at = date('Y-m-d H:i:s');
+        $this->usuario->updated_at = date('Y-m-d H:i:s');
+        $this->usuario->deleted_at = null;
 
         if ($this->usuario->cadastrar()) {
             http_response_code(201);

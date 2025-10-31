@@ -38,12 +38,12 @@ class Usuario
     {
         $query = "INSERT INTO {$this->table} (nome, usuario, senha, ativo, created_at, updated_at, deleted_at) VALUES (:nome, :usuario, :senha, :ativo, :created_at, :updated_at, :deleted_at)";
         $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(":nome", $this->nome);
+        $stmt->bindParam(':nome', trim($this->nome));
         $stmt->bindParam(":usuario", $this->usuario);
         $stmt->bindParam(":senha", $this->senha);
         $stmt->bindParam(":ativo", $this->ativo);
-        $stmt->bindParam(":created_at", $this->created_at);
-        $stmt->bindParam(":updated_at", $this->updated_at);
+        $stmt->bindParam(":created_at", date("Y-m-d H:i:s"));
+        $stmt->bindParam(":updated_at", date("Y-m-d H:i:s"));
         $stmt->bindParam(":deleted_at", $this->deleted_at);
         return $stmt->execute();
     }
@@ -57,7 +57,7 @@ class Usuario
         $stmt->bindParam(":senha", $this->senha);
         $stmt->bindParam(":ativo", $this->ativo);
         $stmt->bindParam(":created_at", $this->created_at);
-        $stmt->bindParam(":updated_at", $this->updated_at);
+        $stmt->bindParam(":updated_at", date("Y-m-d H:i:s"));
         $stmt->bindParam(":deleted_at", $this->deleted_at);
         $stmt->bindParam(":id_usuario", $this->id_usuario);
         return $stmt->execute();
