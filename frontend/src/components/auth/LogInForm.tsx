@@ -35,7 +35,7 @@ export default function LogInForm() {
                   <div className="relative">
                     <Input
                       type={showPassword ? "text" : "password"}
-                      placeholder="Enter your password"
+                      placeholder="Entre com sua senha"
                     />
                     <span
                       onClick={() => setShowPassword(!showPassword)}
