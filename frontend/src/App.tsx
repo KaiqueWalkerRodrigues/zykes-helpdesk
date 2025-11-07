@@ -16,6 +16,7 @@ import { ScrollToTop } from "./components/common/ScrollToTop";
 import PageHome from "./pages/PageHome";
 import PageUsuarios from "./pages/configuracoes/PageUsuarios";
 import PageCargos from "./pages/configuracoes/PageCargos";
+import PageSetores from "./pages/configuracoes/PageSetores";
 import PageLogIn from "./pages/AuthPages/PageLogIn";
 import PageNotFound from "./pages/OtherPage/PageNotFound";
 
@@ -33,6 +34,11 @@ export default function App() {
               index
               path="/configuracoes/cargos"
               element={<PageCargos />}
+            />
+            <Route
+              index
+              path="/configuracoes/setores"
+              element={<PageSetores />}
             />
             <Route
               index

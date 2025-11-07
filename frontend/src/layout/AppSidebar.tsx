@@ -23,6 +23,7 @@ const navItems: NavItem[] = [
     name: "Configurações",
     subItems: [
       { name: "Cargos", path: "/configuracoes/cargos", pro: false },
+      { name: "Setores", path: "/configuracoes/setores", pro: false },
       { name: "Usuários", path: "/configuracoes/usuarios", pro: false },
     ],
   },
