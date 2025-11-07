@@ -3,7 +3,13 @@ import { ReactNode } from "react";
 interface ButtonProps {
   children: ReactNode;
   size?: "sm" | "md" | "lg";
-  variant?: "primary" | "secondary" | "outline" | "success" | "danger";
+  variant?:
+    | "primary"
+    | "secondary"
+    | "outline"
+    | "success"
+    | "danger"
+    | "warning";
   startIcon?: ReactNode;
   endIcon?: ReactNode;
   onClick?: () => void;
@@ -44,6 +50,8 @@ const Button: React.FC<ButtonProps> = ({
       "bg-red-700 text-white shadow-theme-xs hover:bg-red-800 disabled:bg-red-300",
     secondary:
       "bg-gray-700 text-white shadow-theme-xs hover:bg-gray-800 disabled:bg-gray-300",
+    warning:
+      "bg-yellow-700 text-white shadow-theme-xs hover:bg-yellow-800 disabled:bg-yellow-300",
   };
 
   return (

@@ -15,27 +15,25 @@ import {
   FaEye,
 } from "react-icons/fa";
 import Button from "../../components/ui/button/Button";
-import { UsuarioCadastrarModal } from "../ui/modal/Usuario/UsuarioCadastrarModal";
-import { UsuarioEditarModal } from "../ui/modal/Usuario/UsuarioEditarModal";
-import { UsuarioDeletarModal } from "../ui/modal/Usuario/UsuarioDeletarModal";
+import { CargoCadastrarModal } from "../ui/modal/Cargo/CargoCadastrarModal";
+import { CargoEditarModal } from "../ui/modal/Cargo/CargoEditarModal";
+import { CargoDeletarModal } from "../ui/modal/Cargo/CargoDeletarModal";
 import API_BASE from "../../config/api";
 import { toast } from "react-toastify";
 import { ThemedToastContainer } from "../toast/Toast";
-import { UsuarioVisualizarModal } from "../ui/modal/Usuario/UsuarioVisualizarModal";
+import { CargoVisualizarModal } from "../ui/modal/Cargo/CargoVisualizarModal";
 
-interface Usuario {
-  id_usuario: number;
+interface Cargo {
+  id_cargo: number;
   nome: string;
-  usuario: string;
-  ativo: number;
   created_at: string;
   updated_at: string;
 }
 
 const POLL_MS = 2500;
 
-export default function TableUsuarios() {
-  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+export default function TableCargos() {
+  const [cargos, setCargos] = useState<Cargo[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -45,28 +43,24 @@ export default function TableUsuarios() {
   const abortRef = useRef<AbortController | null>(null);
   const pollingRef = useRef<number | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<null | {
-    id_usuario: number;
+    id_cargo: number;
     nome: string;
   }>(null);
   const [deleting, setDeleting] = useState(false);
 
   const [editTarget, setEditTarget] = useState<null | {
-    id_usuario: number;
+    id_cargo: number;
     nome: string;
-    usuario: string;
-    ativo: number;
   }>(null);
   const [visualizarTarget, setVisualizarTarget] = useState<null | {
-    id_usuario: number;
+    id_cargo: number;
     nome: string;
-    usuario: string;
-    ativo: number;
   }>(null);
   const [updating, setUpdating] = useState(false);
 
   const itemsPerPage = 10;
 
-  const fetchUsuarios = async (opts?: { initial?: boolean }) => {
+  const fetchCargos = async (opts?: { initial?: boolean }) => {
     try {
       if (opts?.initial) setLoading(true);
       setError(null);
@@ -77,7 +71,7 @@ export default function TableUsuarios() {
       const headers: HeadersInit = {};
       if (etagRef.current) headers["If-None-Match"] = etagRef.current;
 
-      const res = await fetch(`${API_BASE}/usuarios`, {
+      const res = await fetch(`${API_BASE}/cargos`, {
         method: "GET",
         headers,
         signal: controller.signal,
@@ -86,15 +80,13 @@ export default function TableUsuarios() {
 
       if (res.status === 304) return;
       if (!res.ok)
-        throw new Error(
-          `Erro ${res.status}: não foi possível obter os usuários`
-        );
+        throw new Error(`Erro ${res.status}: não foi possível obter os cargos`);
 
       const newETag = res.headers.get("ETag");
       if (newETag) etagRef.current = newETag;
 
-      const data = (await res.json()) as Usuario[];
-      setUsuarios((prev) => {
+      const data = (await res.json()) as Cargo[];
+      setCargos((prev) => {
         if (prev.length === data.length) {
           try {
             if (JSON.stringify(prev) === JSON.stringify(data)) return prev;
@@ -106,21 +98,19 @@ export default function TableUsuarios() {
       });
     } catch (err: unknown) {
       if (err instanceof Error && err.name === "AbortError") return;
-      setError(
-        err instanceof Error ? err.message : "Erro ao carregar usuários"
-      );
+      setError(err instanceof Error ? err.message : "Erro ao carregar cargos");
     } finally {
       if (opts?.initial) setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchUsuarios({ initial: true });
+    fetchCargos({ initial: true });
 
     const start = () => {
       if (pollingRef.current) clearInterval(pollingRef.current);
       pollingRef.current = window.setInterval(() => {
-        if (document.visibilityState === "visible") fetchUsuarios();
+        if (document.visibilityState === "visible") fetchCargos();
       }, POLL_MS);
     };
 
@@ -145,90 +135,78 @@ export default function TableUsuarios() {
     };
   }, []);
 
-  const handleCreateUsuario = async (novoUsuario: {
-    nome: string;
-    usuario: string;
-    senha: string;
-    ativo: number;
-  }) => {
+  const handleCreateCargo = async (novoCargo: { nome: string }) => {
     try {
-      const res = await fetch(`${API_BASE}/usuarios`, {
+      const res = await fetch(`${API_BASE}/cargos`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(novoUsuario),
+        body: JSON.stringify(novoCargo),
       });
       if (!res.ok)
         throw new Error(
-          `Erro ${res.status}: não foi possível cadastrar o usuário`
+          `Erro ${res.status}: não foi possível cadastrar o cargo`
         );
       etagRef.current = null;
-      await fetchUsuarios();
-      toast.success("Usuário cadastrado com sucesso!");
+      await fetchCargos();
+      toast.success("Cargo cadastrado com sucesso!");
     } catch (err: unknown) {
-      toast.error("Erro ao cadastrar usuário.");
-      setError(
-        err instanceof Error ? err.message : "Erro ao cadastrar usuário"
-      );
+      toast.error("Erro ao cadastrar cargo.");
+      setError(err instanceof Error ? err.message : "Erro ao cadastrar cargo");
     }
   };
 
-  const handleUpdateUsuario = async (payload: {
-    id_usuario: number;
+  const handleUpdateCargo = async (payload: {
+    id_cargo: number;
     nome: string;
-    usuario: string;
-    ativo: number;
-    senha?: string;
   }) => {
     try {
       setUpdating(true);
-      const res = await fetch(`${API_BASE}/usuarios`, {
+      const res = await fetch(`${API_BASE}/cargos`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
       if (!res.ok) {
-        const msg = `Erro ${res.status}: não foi possível atualizar o usuário`;
+        const msg = `Erro ${res.status}: não foi possível atualizar o cargo`;
         setError(msg);
         throw new Error(msg);
       }
       etagRef.current = null;
-      await fetchUsuarios();
+      await fetchCargos();
       setEditTarget(null);
-      toast.success("Usuário atualizado com sucesso!");
+      toast.success("Cargo atualizado com sucesso!");
     } catch (err: unknown) {
-      toast.error("Erro ao atualizar usuário.");
-      setError(
-        err instanceof Error ? err.message : "Erro ao atualizar usuário"
-      );
+      toast.error("Erro ao atualizar cargo.");
+      setError(err instanceof Error ? err.message : "Erro ao atualizar cargo");
     } finally {
       setUpdating(false);
     }
   };
 
-  const handleDeleteUsuario = async (id_usuario: number) => {
+  const handleDeleteCargo = async (id_cargo: number) => {
     try {
       setDeleting(true);
 
-      const res = await fetch(`${API_BASE}/usuarios?id_usuario=${id_usuario}`, {
+      const res = await fetch(`${API_BASE}/cargos?id_cargo=${id_cargo}`, {
         method: "DELETE",
         cache: "no-cache",
       });
 
       if (!res.ok) {
-        const msg = `Erro ${res.status}: não foi possível excluir o usuário`;
+        const msg = `Erro ${res.status}: não foi possível excluir o cargo`;
         setError(msg);
         throw new Error(msg);
       }
 
       etagRef.current = null;
 
-      setUsuarios((prev) => prev.filter((u) => u.id_usuario !== id_usuario));
+      setCargos((prev) => prev.filter((u) => u.id_cargo !== id_cargo));
 
-      await fetchUsuarios();
-      toast.success("Usuário excluído com sucesso!");
+      await fetchCargos();
+      toast.success("Cargo excluído com sucesso!");
     } catch (err: unknown) {
-      toast.error("Erro ao excluir usuário.");
-      setError(err instanceof Error ? err.message : "Erro ao excluir usuário");
+      toast.error("Erro ao excluir cargo.");
+      setError(err instanceof Error ? err.message : "Erro ao excluir cargo");
     } finally {
       setDeleting(false);
     }
@@ -236,11 +214,8 @@ export default function TableUsuarios() {
 
   const filteredData = useMemo(() => {
     const q = search.toLowerCase();
-    return usuarios.filter(
-      (u) =>
-        u.nome.toLowerCase().includes(q) || u.usuario.toLowerCase().includes(q)
-    );
-  }, [search, usuarios]);
+    return cargos.filter((u) => u.nome.toLowerCase().includes(q));
+  }, [search, cargos]);
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -292,13 +267,13 @@ export default function TableUsuarios() {
         <div className="flex-1 max-w-full overflow-x-auto">
           {loading ? (
             <div className="p-6 text-center text-gray-500 dark:text-gray-400">
-              Carregando usuários...
+              Carregando cargos...
             </div>
           ) : error ? (
             <div className="p-6 text-center text-error-500">{error}</div>
           ) : filteredData.length === 0 ? (
             <div className="p-6 text-center text-gray-500 dark:text-gray-400">
-              Nenhum usuário encontrado.
+              Nenhum cargo encontrado.
             </div>
           ) : (
             <Table className="w-full">
@@ -314,7 +289,7 @@ export default function TableUsuarios() {
                     isHeader
                     className="px-5 py-3 text-start text-gray-500 text-theme-xs dark:text-gray-400 font-medium"
                   >
-                    Usuário
+                    Cargo
                   </TableCell>
                   <TableCell
                     isHeader
@@ -332,18 +307,12 @@ export default function TableUsuarios() {
               </TableHeader>
 
               <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-                {paginatedData.map((usuario) => (
-                  <TableRow key={usuario.id_usuario}>
+                {paginatedData.map((cargo) => (
+                  <TableRow key={cargo.id_cargo}>
                     <TableCell className="px-5 py-4 sm:px-6 text-start">
                       <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
-                        {usuario.nome}
+                        {cargo.nome}
                       </span>
-                    </TableCell>
-                    <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
-                      {usuario.usuario}
-                    </TableCell>
-                    <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
-                      {usuario.ativo ? "Sim" : "Não"}
                     </TableCell>
                     <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
                       <div className="flex gap-2">
@@ -353,10 +322,8 @@ export default function TableUsuarios() {
                           startIcon={<FaEye className="size-3.5" />}
                           onClick={() =>
                             setVisualizarTarget({
-                              id_usuario: usuario.id_usuario,
-                              nome: usuario.nome,
-                              usuario: usuario.usuario,
-                              ativo: usuario.ativo,
+                              id_cargo: cargo.id_cargo,
+                              nome: cargo.nome,
                             })
                           }
                         >
@@ -368,10 +335,8 @@ export default function TableUsuarios() {
                           startIcon={<FaPen className="size-3.5" />}
                           onClick={() =>
                             setEditTarget({
-                              id_usuario: usuario.id_usuario,
-                              nome: usuario.nome,
-                              usuario: usuario.usuario,
-                              ativo: usuario.ativo,
+                              id_cargo: cargo.id_cargo,
+                              nome: cargo.nome,
                             })
                           }
                           disabled={updating}
@@ -384,8 +349,8 @@ export default function TableUsuarios() {
                           startIcon={<FaTrash className="size-3.5" />}
                           onClick={() =>
                             setDeleteTarget({
-                              id_usuario: usuario.id_usuario,
-                              nome: usuario.nome,
+                              id_cargo: cargo.id_cargo,
+                              nome: cargo.nome,
                             })
                           }
                           disabled={deleting}
@@ -462,28 +427,28 @@ export default function TableUsuarios() {
         )}
       </div>
 
-      <UsuarioVisualizarModal
+      <CargoVisualizarModal
         isOpen={!!visualizarTarget}
         onClose={() => setVisualizarTarget(null)}
-        usuario={visualizarTarget ?? undefined}
+        cargo={visualizarTarget ?? undefined}
         onSubmit={() => {}}
       />
-      <UsuarioCadastrarModal
+      <CargoCadastrarModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSubmit={handleCreateUsuario}
+        onSubmit={handleCreateCargo}
       />
-      <UsuarioEditarModal
+      <CargoEditarModal
         isOpen={!!editTarget}
         onClose={() => setEditTarget(null)}
-        usuario={editTarget ?? undefined}
-        onSubmit={handleUpdateUsuario}
+        cargo={editTarget ?? undefined}
+        onSubmit={handleUpdateCargo}
       />
-      <UsuarioDeletarModal
+      <CargoDeletarModal
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
-        usuario={deleteTarget ?? undefined}
-        onConfirm={handleDeleteUsuario}
+        cargo={deleteTarget ?? undefined}
+        onConfirm={handleDeleteCargo}
       />
       <ThemedToastContainer />
     </>

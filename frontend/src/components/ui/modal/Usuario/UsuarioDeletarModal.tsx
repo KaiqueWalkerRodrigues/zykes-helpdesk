@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { Modal } from "./Modal";
-import Button from "../../ui/button/Button";
+import { Modal } from "../Modal";
+import Button from "../../../ui/button/Button";
 
 interface UsuarioDeletarModalProps {
   isOpen: boolean;

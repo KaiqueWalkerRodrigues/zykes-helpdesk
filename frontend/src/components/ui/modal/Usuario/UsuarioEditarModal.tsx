@@ -1,9 +1,9 @@
 import React, { useEffect, useState, FormEvent } from "react";
-import { Modal } from "./Modal";
-import Button from "../../ui/button/Button";
-import Checkbox from "../../form/input/Checkbox";
-import Input from "../../form/input/InputField";
-import Label from "../../form/Label";
+import { Modal } from "../Modal";
+import Button from "../../../ui/button/Button";
+import Checkbox from "../../../form/input/Checkbox";
+import Input from "../../../form/input/InputField";
+import Label from "../../../form/Label";
 
 export interface UsuarioParaEditar {
   id_usuario: number;
