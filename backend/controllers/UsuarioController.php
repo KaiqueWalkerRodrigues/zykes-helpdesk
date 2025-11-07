@@ -12,6 +12,17 @@ class UsuarioController
 
     public function listar()
     {
+        $etag = $this->usuario->gerarEtag();
+        header('ETag: ' . $etag);
+        header('Cache-Control: no-cache');
+        header('Access-Control-Expose-Headers: ETag');
+
+        $ifNoneMatch = $_SERVER['HTTP_IF_NONE_MATCH'] ?? '';
+        if ($ifNoneMatch === $etag) {
+            http_response_code(304);
+            return;
+        }
+
         $stmt = $this->usuario->listar();
         $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
         echo json_encode($usuarios);
@@ -44,21 +55,32 @@ class UsuarioController
 
     public function editar($data)
     {
-        $this->usuario->id_usuario = $data['id_usuario'] ?? null;
-        $this->usuario->nome = $data['nome'] ?? null;
-        $this->usuario->usuario = $data['usuario'] ?? null;
-        $this->usuario->senha = $data['senha'] ?? null;
-        $this->usuario->ativo = $data['ativo'] ?? null;
-        $this->usuario->created_at = $data['created_at'] ?? null;
-        $this->usuario->updated_at = $data['updated_at'] ?? null;
-        $this->usuario->deleted_at = $data['deleted_at'] ?? null;
+        if (empty($data['id_usuario'])) {
+            http_response_code(400);
+            echo json_encode(["mensagem" => "id_usuario é obrigatório"]);
+            return;
+        }
+
+        $this->usuario->id_usuario = (int)$data['id_usuario'];
+
+        $this->usuario->nome    = $data['nome']    ?? '';
+        $this->usuario->usuario = $data['usuario'] ?? '';
+        $this->usuario->ativo   = isset($data['ativo']) ? (int)$data['ativo'] : 1;
+
+        if (isset($data['senha']) && trim($data['senha']) !== '') {
+            $this->usuario->senha = password_hash($data['senha'], PASSWORD_DEFAULT);
+        } else {
+            $this->usuario->senha = null;
+        }
 
         if ($this->usuario->editar()) {
             echo json_encode(["mensagem" => "Usuário editado com sucesso"]);
         } else {
+            http_response_code(400);
             echo json_encode(["mensagem" => "Erro ao editar usuario"]);
         }
     }
+
 
     public function deletar($id)
     {

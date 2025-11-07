@@ -5,6 +5,20 @@ layer(base);
 
 @custom-variant dark (&:is(.dark *));
 
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #9ca3af transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #9ca3af;
+  border-radius: 4px;
+}
+
 @theme {
   --font-*: initial;
   --font-outfit: Outfit, sans-serif;

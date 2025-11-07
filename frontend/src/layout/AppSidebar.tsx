@@ -27,6 +27,7 @@ const navItems: NavItem[] = [
     icon: <GoGear />,
     name: "Configurações",
     subItems: [
+      { name: "Cargos", path: "/configuracoes/cargos", pro: false },
       { name: "Usuários", path: "/configuracoes/usuarios", pro: false },
     ],
   },
@@ -54,12 +55,32 @@ const AppSidebar: React.FC = () => {
   );
 
   useEffect(() => {
+    let topLevelActive = false;
+
+    // 1. Verifica se algum item de NÍVEL SUPERIOR está ativo
+    for (const nav of navItems) {
+      if (nav.path && isActive(nav.path)) {
+        topLevelActive = true;
+        break; // Encontrou um, não precisa procurar mais
+      }
+    }
+
+    // 2. Se um item de nível superior estiver ativo, FECHE todos os submenus
+    if (topLevelActive) {
+      setOpenSubmenu(null);
+      return; // Pára a execução aqui
+    }
+
+    // 3. Se NENHUM item de nível superior estiver ativo, procure por sub-itens ativos
     let submenuMatched = false;
+    // O 'outros' está comentado no seu JSX, mas mantive a lógica caso você o reative
     ["main", "outros"].forEach((menuType) => {
-      const items = menuType === "main" ? navItems : navItems;
+      // Corrigindo um pequeno bug: você estava usando navItems para 'outros' também
+      const items = menuType === "main" ? navItems : []; // Use 'othersItems' aqui se reativar
       items.forEach((nav, index) => {
         if (nav.subItems) {
           nav.subItems.forEach((subItem) => {
+            // Usando 'some' para parar assim que encontrar uma correspondência
             if (isActive(subItem.path)) {
               setOpenSubmenu({
                 type: menuType as "main" | "outros",
@@ -72,10 +93,11 @@ const AppSidebar: React.FC = () => {
       });
     });
 
+    // 4. Se nenhum sub-item corresponder, feche todos os submenus
     if (!submenuMatched) {
       setOpenSubmenu(null);
     }
-  }, [location, isActive]);
+  }, [location, isActive]); // A dependência 'navItems' não é necessária aqui
 
   useEffect(() => {
     if (openSubmenu !== null) {

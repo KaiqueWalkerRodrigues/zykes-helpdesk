@@ -28,7 +28,7 @@ class Usuario
 
     public function listar()
     {
-        $query = "SELECT * FROM {$this->table}";
+        $query = "SELECT * FROM {$this->table} WHERE deleted_at IS NULL";
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
         return $stmt;
@@ -36,38 +36,66 @@ class Usuario
 
     public function cadastrar()
     {
-        $query = "INSERT INTO {$this->table} (nome, usuario, senha, ativo, created_at, updated_at, deleted_at) VALUES (:nome, :usuario, :senha, :ativo, :created_at, :updated_at, :deleted_at)";
-        $stmt = $this->conn->prepare($query);
+        $sql = "INSERT INTO {$this->table}
+            (nome, usuario, senha, ativo, created_at, updated_at, deleted_at)
+            VALUES (:nome, :usuario, :senha, :ativo, NOW(6), NOW(6), :deleted_at)";
+        $stmt = $this->conn->prepare($sql);
         $stmt->bindParam(':nome', trim($this->nome));
-        $stmt->bindParam(":usuario", $this->usuario);
-        $stmt->bindParam(":senha", $this->senha);
-        $stmt->bindParam(":ativo", $this->ativo);
-        $stmt->bindParam(":created_at", date("Y-m-d H:i:s"));
-        $stmt->bindParam(":updated_at", date("Y-m-d H:i:s"));
-        $stmt->bindParam(":deleted_at", $this->deleted_at);
+        $stmt->bindParam(':usuario', $this->usuario);
+        $stmt->bindParam(':senha', $this->senha);
+        $stmt->bindParam(':ativo', $this->ativo, PDO::PARAM_INT);
+        $stmt->bindValue(':deleted_at', null, PDO::PARAM_NULL);
         return $stmt->execute();
     }
 
     public function editar()
     {
-        $query = "UPDATE {$this->table} SET nome=:nome, usuario=:usuario, senha=:senha, ativo=:ativo, created_at=:created_at, updated_at=:updated_at, deleted_at=:deleted_at WHERE id_usuario=:id_usuario";
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(":nome", $this->nome);
-        $stmt->bindParam(":usuario", $this->usuario);
-        $stmt->bindParam(":senha", $this->senha);
-        $stmt->bindParam(":ativo", $this->ativo);
-        $stmt->bindParam(":created_at", $this->created_at);
-        $stmt->bindParam(":updated_at", date("Y-m-d H:i:s"));
-        $stmt->bindParam(":deleted_at", $this->deleted_at);
-        $stmt->bindParam(":id_usuario", $this->id_usuario);
+        $sets = [
+            "nome = :nome",
+            "usuario = :usuario",
+            "ativo = :ativo",
+            "updated_at = NOW(6)",
+        ];
+        $temSenha = ($this->senha !== null && $this->senha !== '');
+        if ($temSenha) $sets[] = "senha = :senha";
+
+        $sql = "UPDATE {$this->table} SET " . implode(", ", $sets) . " WHERE id_usuario = :id_usuario";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':nome', $this->nome);
+        $stmt->bindParam(':usuario', $this->usuario);
+        $ativoInt = (int)$this->ativo;
+        $stmt->bindParam(':ativo', $ativoInt, PDO::PARAM_INT);
+        if ($temSenha) $stmt->bindParam(':senha', $this->senha);
+        $stmt->bindParam(':id_usuario', $this->id_usuario, PDO::PARAM_INT);
         return $stmt->execute();
     }
 
     public function deletar()
     {
-        $query = "DELETE FROM {$this->table} WHERE id_usuario=:id_usuario";
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(":id_usuario", $this->id_usuario);
+        $sql = "UPDATE {$this->table}
+            SET deleted_at = NOW(6), updated_at = NOW(6)
+            WHERE id_usuario = :id_usuario";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':id_usuario', $this->id_usuario, PDO::PARAM_INT);
         return $stmt->execute();
+    }
+
+    public function gerarEtag(): string
+    {
+        $sql = "SELECT
+              SHA1(CONCAT_WS('|',
+                COALESCE(GREATEST(MAX(updated_at), MAX(deleted_at)), '1970-01-01 00:00:00.000000'),
+                COUNT(*),
+                COALESCE(SUM(CRC32(CONCAT_WS('#',
+                    id_usuario, nome, usuario, ativo,
+                    IFNULL(updated_at,''), IFNULL(deleted_at,''))))
+                ,0)
+              )) AS tag
+            FROM {$this->table}
+            WHERE deleted_at IS NULL";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute();
+        $etag = $stmt->fetchColumn();
+        return '"' . $etag . '"';
     }
 }
