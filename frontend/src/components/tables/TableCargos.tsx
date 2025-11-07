@@ -289,18 +289,6 @@ export default function TableCargos() {
                     isHeader
                     className="px-5 py-3 text-start text-gray-500 text-theme-xs dark:text-gray-400 font-medium"
                   >
-                    Cargo
-                  </TableCell>
-                  <TableCell
-                    isHeader
-                    className="px-5 py-3 text-start text-gray-500 text-theme-xs dark:text-gray-400 font-medium"
-                  >
-                    Ativo
-                  </TableCell>
-                  <TableCell
-                    isHeader
-                    className="px-5 py-3 text-start text-gray-500 text-theme-xs dark:text-gray-400 font-medium"
-                  >
                     Ações
                   </TableCell>
                 </TableRow>
