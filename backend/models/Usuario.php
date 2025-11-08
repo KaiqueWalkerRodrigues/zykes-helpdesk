@@ -1,4 +1,9 @@
 <?php
+require_once __DIR__ . '/../vendor/autoload.php';
+
+use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
+
 class Usuario
 {
     private $conn;
@@ -80,6 +85,64 @@ class Usuario
         return $stmt->execute();
     }
 
+    public function login($usuario, $senha)
+    {
+        $chaveJWT = "zyk3s";
+
+        $sql = "SELECT * FROM {$this->table}
+                WHERE usuario = :usuario
+                AND deleted_at IS NULL
+                AND ativo = 1
+                LIMIT 1";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':usuario', $usuario);
+        $stmt->execute();
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$user || !password_verify($senha, $user['senha'])) {
+            http_response_code(401);
+            echo json_encode(["mensagem" => "Usuário ou senha inválidos"]);
+            return false;
+        }
+
+        $agora = time();
+        $expira = $agora + (60 * 60 * 2);
+
+        $payload = [
+            'iss' => 'zykes_helpdesk',
+            'iat' => $agora,
+            'exp' => $expira,
+            'data' => [
+                'id_usuario' => $user['id_usuario'],
+                'nome' => $user['nome'],
+                'usuario' => $user['usuario']
+            ]
+        ];
+
+        $jwt = JWT::encode($payload, $chaveJWT, 'HS256');
+
+        $sqlInsert = "INSERT INTO usuarios_tokens_jwt (id_usuario, token, expira_em, created_at)
+                    VALUES (:id_usuario, :token, FROM_UNIXTIME(:expira), NOW(6))";
+        $stmtInsert = $this->conn->prepare($sqlInsert);
+        $stmtInsert->bindParam(':id_usuario', $user['id_usuario']);
+        $stmtInsert->bindParam(':token', $jwt);
+        $stmtInsert->bindParam(':expira', $expira);
+        $stmtInsert->execute();
+
+        echo json_encode([
+            "success" => true,
+            "token" => $jwt,
+            "expira_em" => date('Y-m-d H:i:s', $expira),
+            "usuario" => [
+                "id_usuario" => $user['id_usuario'],
+                "nome" => $user['nome'],
+                "usuario" => $user['usuario']
+            ]
+        ]);
+
+        return true;
+    }
+
     public function gerarEtag(): string
     {
         $sql = "SELECT
@@ -88,8 +151,8 @@ class Usuario
                 COUNT(*),
                 COALESCE(SUM(CRC32(CONCAT_WS('#',
                     id_usuario, nome, usuario, ativo,
-                    IFNULL(updated_at,''), IFNULL(deleted_at,''))))
-                ,0)
+                    IFNULL(updated_at,''), IFNULL(deleted_at,'')))),
+                0)
               )) AS tag
             FROM {$this->table}
             WHERE deleted_at IS NULL";

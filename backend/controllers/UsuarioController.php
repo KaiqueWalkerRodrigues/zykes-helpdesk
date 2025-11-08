@@ -91,4 +91,17 @@ class UsuarioController
             echo json_encode(["mensagem" => "Erro ao excluir o usuario"]);
         }
     }
+
+    public function login($data)
+    {
+        if (empty($data['usuario']) || empty($data['senha'])) {
+            http_response_code(400);
+            echo json_encode(["mensagem" => "Usuário e senha são obrigatórios"]);
+            return;
+        }
+        $usuario = trim($data['usuario']);
+        $senha = trim($data['senha']);
+
+        $this->usuario->login($usuario, $senha);
+    }
 }

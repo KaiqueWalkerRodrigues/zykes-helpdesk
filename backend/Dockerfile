@@ -1,24 +1,35 @@
-    # Seleciona a Imagem a ser carregada do Banco Docker
-    FROM php:8.3-fpm
+# Seleciona a Imagem Base
+FROM php:8.3-fpm
 
-    # Instala as principais dependecias
-    RUN docker-php-ext-install pdo pdo_mysql
+# Atualiza e instala dependências do sistema
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    unzip \
+    p7zip-full \
+    git \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
-    # Instala o composer
-    RUN curl -sS https://getcomposer.org/installer | php && \
-        mv composer.phar /usr/local/bin/composer
-        
-    # Define o diretorio de trabalho
-    WORKDIR /var/www/html/
+# Instala extensões PHP necessárias
+RUN docker-php-ext-install pdo pdo_mysql
 
-    # Copia os arquivos do contexto
-    COPY . .
+# Instala o Composer
+RUN curl -sS https://getcomposer.org/installer | php && \
+    mv composer.phar /usr/local/bin/composer
 
-    # Define as permissões do rietorio de trabalho
-    RUN chown -R www-data:www-data /var/www/html
+# Define o diretório de trabalho
+WORKDIR /var/www/html/
 
-    # Expõe a porta padrão (9000) do fpm-php
-    EXPOSE 9000
+# Copia o código do projeto para dentro do container
+COPY . .
 
-    # Comando Padrão
-    CMD ["php-fpm"]
+# Instala automaticamente a biblioteca Firebase JWT
+RUN composer require firebase/php-jwt --no-interaction --no-progress
+
+# Define permissões do diretório
+RUN chown -R www-data:www-data /var/www/html
+
+# Expõe a porta padrão do PHP-FPM
+EXPOSE 9000
+
+# Comando padrão
+CMD ["php-fpm"]
