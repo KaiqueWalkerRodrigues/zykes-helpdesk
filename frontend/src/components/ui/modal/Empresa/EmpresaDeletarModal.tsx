@@ -2,27 +2,27 @@ import React, { useState } from "react";
 import { Modal } from "../Modal";
 import Button from "../../../ui/button/Button";
 
-interface CargoDeletarModalProps {
+interface EmpresaDeletarModalProps {
   isOpen: boolean;
   onClose: () => void;
-  cargo?: { id_cargo: number; nome: string };
-  onConfirm: (id_cargo: number) => Promise<void>;
+  empresa?: { id_empresa: number; nome: string };
+  onConfirm: (id_empresa: number) => Promise<void>;
 }
 
-export const CargoDeletarModal: React.FC<CargoDeletarModalProps> = ({
+export const EmpresaDeletarModal: React.FC<EmpresaDeletarModalProps> = ({
   isOpen,
   onClose,
-  cargo,
+  empresa,
   onConfirm,
 }) => {
   const [loading, setLoading] = useState(false);
 
-  if (!cargo) return null;
+  if (!empresa) return null;
 
   const handleConfirm = async () => {
     try {
       setLoading(true);
-      await onConfirm(cargo.id_cargo);
+      await onConfirm(empresa.id_empresa);
       onClose();
     } finally {
       setLoading(false);
@@ -30,14 +30,14 @@ export const CargoDeletarModal: React.FC<CargoDeletarModalProps> = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Deletar Cargo" size="sm">
+    <Modal isOpen={isOpen} onClose={onClose} title="Deletar Empresa" size="sm">
       <div className="p-4 sm:p-6">
         <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
           Confirmar exclusão
         </h3>
         <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-          Tem certeza que deseja excluir o cargo{" "}
-          <span className="font-medium">{cargo.nome}</span>? Esta ação não
+          Tem certeza que deseja excluir a empresa{" "}
+          <span className="font-medium">{empresa.nome}</span>? Esta ação não
           poderá ser desfeita.
         </p>
 

@@ -36,7 +36,7 @@ export const SetorDeletarModal: React.FC<SetorDeletarModalProps> = ({
           Confirmar exclusão
         </h3>
         <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-          Tem certeza que deseja excluir o usuário{" "}
+          Tem certeza que deseja excluir o setor{" "}
           <span className="font-medium">{setor.nome}</span>? Esta ação não
           poderá ser desfeita.
         </p>

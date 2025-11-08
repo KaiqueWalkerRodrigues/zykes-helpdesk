@@ -9,6 +9,11 @@ if (strpos($uri, '/cargos') === 0) {
     exit;
 }
 
+if (strpos($uri, '/empresas') === 0) {
+    require_once __DIR__ . '/routes/empresas.php';
+    exit;
+}
+
 if (strpos($uri, '/setores') === 0) {
     require_once __DIR__ . '/routes/setores.php';
     exit;
