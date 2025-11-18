@@ -8,22 +8,23 @@ export default function PageLogout() {
 
       if (token) {
         try {
-          await fetch(`${API_BASE}/logout`, {
+          await fetch(`${API_BASE}/login`, {
             method: "POST",
             headers: {
               Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
             },
+            // ADICIONE ESTA LINHA ABAIXO:
+            body: JSON.stringify({ token: token }),
           });
         } catch (err) {
           console.error("Erro ao comunicar logout:", err);
         }
       }
 
-      // limpa localStorage
       localStorage.removeItem("token");
       localStorage.removeItem("keepLogged");
 
-      // redireciona
       window.location.href = "/login";
     }
 

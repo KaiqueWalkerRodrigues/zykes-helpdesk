@@ -26,21 +26,24 @@ export default function LogInForm() {
         body: JSON.stringify({ usuario, senha }),
       });
 
-      if (!res.ok)
-        throw new Error(`Erro ${res.status}: não foi possível realizar login`);
-
       const data = await res.json();
+
+      // 2. Se a resposta HTTP não for OK (ex: 400, 401, 500)
+      if (!res.ok) {
+        // Pega a mensagem específica do PHP (data.mensagem) ou usa uma padrão
+        throw new Error(data.mensagem || "Não foi possível realizar login");
+      }
 
       if (data.success) {
         toast.success("Login realizado com sucesso!");
         localStorage.setItem("token", data.token);
+
         if (isChecked) localStorage.setItem("keepLogged", "true");
+
         window.location.href = "/";
-      } else {
-        toast.error(data.message || "Usuário ou senha incorretos");
       }
-    } catch (err: unknown) {
-      toast.error("Erro ao realizar login");
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao realizar login");
       console.error(err);
     } finally {
       setLoading(false);

@@ -201,15 +201,6 @@ class Usuario
         $stmt = $this->conn->prepare($sql);
         $stmt->bindParam(':token', $token);
         $stmt->execute();
-
-        if ($stmt->rowCount() > 0) {
-            echo json_encode(["success" => true, "mensagem" => "Logout realizado com sucesso"]);
-            return true;
-        } else {
-            http_response_code(404);
-            echo json_encode(["mensagem" => "Token inválido ou já revogado"]);
-            return false;
-        }
     }
 
     public function validar_token($token)

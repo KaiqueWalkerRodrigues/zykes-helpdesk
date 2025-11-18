@@ -143,7 +143,6 @@ class UsuarioController
         $this->usuario->logout($token);
     }
 
-
     public function validar_token()
     {
         $headers = getallheaders();

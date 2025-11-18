@@ -36,8 +36,8 @@ switch ($method) {
         $data = $input ?? $_REQUEST;
 
         // Se vier um token, desloga
-        if (isset($data['token']) && !empty($data['token'])) {
-            $controller->logout($data['token']);
+        if (isset($data['token'])) {
+            $controller->logout($data);
         }
         // Caso contrário, tenta login
         elseif (isset($data['usuario']) && isset($data['senha'])) {
