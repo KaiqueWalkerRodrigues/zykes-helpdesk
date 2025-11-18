@@ -22,7 +22,7 @@ if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS']) && $_SERVER['HTTP_ACC
     header('Access-Control-Allow-Headers: ' . $allowedHeaders);
 }
 
-// Responde a requisições OPTIONS (CORS preflight)
+// Handle preflight OPTIONS request
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit;
@@ -34,18 +34,7 @@ $input = json_decode(file_get_contents("php://input"), true);
 switch ($method) {
     case 'POST':
         $data = $input ?? $_REQUEST;
-
-        // Se vier um token, desloga
-        if (isset($data['token']) && !empty($data['token'])) {
-            $controller->logout($data['token']);
-        }
-        // Caso contrário, tenta login
-        elseif (isset($data['usuario']) && isset($data['senha'])) {
-            $controller->login($data);
-        } else {
-            http_response_code(400);
-            echo json_encode(["mensagem" => "Parâmetros inválidos"]);
-        }
+        $controller->validar_token($data);
         break;
 
     default:

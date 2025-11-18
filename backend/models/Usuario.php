@@ -18,6 +18,8 @@ class Usuario
     public $updated_at;
     public $deleted_at;
 
+    private $chaveJWT = "zyk3s";
+
     public function __construct($db)
     {
         $this->conn = $db;
@@ -87,8 +89,6 @@ class Usuario
 
     public function login($usuario, $senha)
     {
-        $chaveJWT = "zyk3s";
-
         $sql = "SELECT * FROM {$this->table}
                 WHERE usuario = :usuario
                 AND deleted_at IS NULL
@@ -119,7 +119,7 @@ class Usuario
             ]
         ];
 
-        $jwt = JWT::encode($payload, $chaveJWT, 'HS256');
+        $jwt = JWT::encode($payload, $this->chaveJWT, 'HS256');
 
         $sqlInsert = "INSERT INTO usuarios_tokens_jwt (id_usuario, token, expira_em, created_at)
                     VALUES (:id_usuario, :token, FROM_UNIXTIME(:expira), NOW(6))";
@@ -142,6 +142,84 @@ class Usuario
 
         return true;
     }
+
+    public function logout($token)
+    {
+        if (!$token) {
+            http_response_code(400);
+            echo json_encode(["mensagem" => "Token não informado"]);
+            return false;
+        }
+
+        $sql = "UPDATE usuarios_tokens_jwt 
+            SET revogado = 1, updated_at = NOW(6)
+            WHERE token = :token AND revogado = 0";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':token', $token);
+        $stmt->execute();
+
+        if ($stmt->rowCount() > 0) {
+            echo json_encode(["success" => true, "mensagem" => "Logout realizado com sucesso"]);
+            return true;
+        } else {
+            http_response_code(404);
+            echo json_encode(["mensagem" => "Token inválido ou já revogado"]);
+            return false;
+        }
+    }
+
+    public function validar_token($token)
+    {
+        if (!$token) {
+            http_response_code(401);
+            echo json_encode(["valido" => false, "erro" => "Token ausente"]);
+            return false;
+        }
+
+        try {
+            $dados = JWT::decode($token, new Key($this->chaveJWT, "HS256"));
+            $id_usuario = $dados->data->id_usuario;
+
+            $sql = "SELECT * FROM usuarios_tokens_jwt
+                WHERE token = :token
+                AND revogado = 0
+                AND expira_em > NOW()
+                LIMIT 1";
+
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindParam(':token', $token);
+            $stmt->execute();
+            $registroToken = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$registroToken) {
+                http_response_code(401);
+                echo json_encode([
+                    "valido" => false,
+                    "erro" => "Token expirado ou revogado"
+                ]);
+                return false;
+            }
+
+            // 3 — Token válido
+            echo json_encode([
+                "valido" => true,
+                "usuario" => [
+                    "id_usuario" => $dados->data->id_usuario,
+                    "nome" => $dados->data->nome,
+                    "usuario" => $dados->data->usuario,
+                ]
+            ]);
+            return true;
+        } catch (\Exception $e) {
+            http_response_code(401);
+            echo json_encode([
+                "valido" => false,
+                "erro" => "Token inválido"
+            ]);
+            return false;
+        }
+    }
+
 
     public function gerarEtag(): string
     {

@@ -33,7 +33,6 @@ export default function LogInForm() {
 
       if (data.success) {
         toast.success("Login realizado com sucesso!");
-        // exemplo: salvar token ou redirecionar
         localStorage.setItem("token", data.token);
         if (isChecked) localStorage.setItem("keepLogged", "true");
         window.location.href = "/";

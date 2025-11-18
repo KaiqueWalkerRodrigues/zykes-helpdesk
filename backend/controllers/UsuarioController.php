@@ -96,12 +96,39 @@ class UsuarioController
     {
         if (empty($data['usuario']) || empty($data['senha'])) {
             http_response_code(400);
-            echo json_encode(["mensagem" => "Usuário e senha são obrigatórios"]);
+            echo json_encode([
+                "mensagem" => "Usuário e senha são obrigatórios",
+            ]);
             return;
         }
         $usuario = trim($data['usuario']);
         $senha = trim($data['senha']);
 
         $this->usuario->login($usuario, $senha);
+    }
+
+    public function logout()
+    {
+        $headers = getallheaders();
+        $token = null;
+
+        if (isset($headers["Authorization"])) {
+            list($type, $token) = explode(" ", $headers["Authorization"]);
+        }
+
+        $this->usuario->logout($token);
+    }
+
+
+    public function validar_token()
+    {
+        $headers = getallheaders();
+        $token = null;
+
+        if (isset($headers["Authorization"])) {
+            list($type, $token) = explode(" ", $headers["Authorization"]);
+        }
+
+        $this->usuario->validar_token($token);
     }
 }
