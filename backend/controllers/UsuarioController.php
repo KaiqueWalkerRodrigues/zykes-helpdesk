@@ -10,6 +10,30 @@ class UsuarioController
         $this->usuario = new Usuario($db);
     }
 
+    public function buscarPorToken($token)
+    {
+        $etag = $this->usuario->gerarEtag();
+        header('ETag: ' . $etag);
+        header('Cache-Control: no-cache');
+        header('Access-Control-Expose-Headers: ETag');
+
+        $ifNoneMatch = $_SERVER['HTTP_IF_NONE_MATCH'] ?? '';
+        if ($ifNoneMatch === $etag) {
+            http_response_code(304);
+            return;
+        }
+
+        $usuario = $this->usuario->buscarPorToken($token);
+
+        if (!$usuario) {
+            http_response_code(401);
+            echo json_encode(["erro" => "Token inválido ou expirado"]);
+            return;
+        }
+
+        echo json_encode($usuario);
+    }
+
     public function listar()
     {
         $etag = $this->usuario->gerarEtag();

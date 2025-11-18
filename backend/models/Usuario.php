@@ -33,6 +33,50 @@ class Usuario
         return $stmt->execute();
     }
 
+    public function buscarPorToken($token)
+    {
+        $query = "
+        SELECT id_usuario 
+        FROM usuarios_tokens_jwt 
+        WHERE token = :token 
+          AND revogado = 0 
+          AND expira_em > NOW()
+        LIMIT 1
+    ";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':token', $token);
+        $stmt->execute();
+
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$result) {
+            return null;
+        }
+
+        $id_usuario = $result['id_usuario'];
+
+        $queryUser = "
+        SELECT 
+            id_usuario,
+            nome,
+            usuario,
+            ativo,
+            created_at,
+            updated_at
+        FROM usuarios
+        WHERE id_usuario = :id_usuario
+        LIMIT 1
+    ";
+
+        $stmtUser = $this->conn->prepare($queryUser);
+        $stmtUser->bindParam(':id_usuario', $id_usuario);
+        $stmtUser->execute();
+
+        return $stmtUser->fetch(PDO::FETCH_ASSOC);
+    }
+
+
     public function listar()
     {
         $query = "SELECT * FROM {$this->table} WHERE deleted_at IS NULL";

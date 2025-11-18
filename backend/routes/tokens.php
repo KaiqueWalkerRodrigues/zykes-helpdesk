@@ -36,7 +36,10 @@ switch ($method) {
         $data = $input ?? $_REQUEST;
         $controller->validar_token($data);
         break;
-
+    case 'GET':
+        $data = $input ?? $_REQUEST;
+        $controller->buscarPorToken($data['token']);
+        break;
     default:
         http_response_code(405);
         echo json_encode(["mensagem" => "Método não permitido"]);
