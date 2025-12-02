@@ -4,6 +4,7 @@ import { Link, useLocation } from "react-router-dom";
 import { ChevronDownIcon, HorizontaLDots } from "../icons";
 import { useSidebar } from "../context/SidebarContext";
 import { GoGear, GoHome } from "react-icons/go";
+import { PiTicketLight } from "react-icons/pi";
 
 type NavItem = {
   name: string;
@@ -17,6 +18,11 @@ const navItems: NavItem[] = [
     icon: <GoHome />,
     name: "Home",
     path: "/",
+  },
+  {
+    icon: <PiTicketLight />,
+    name: "Tickets",
+    path: "/tickets",
   },
   {
     icon: <GoGear />,
